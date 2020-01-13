@@ -3,7 +3,34 @@ package test
 import sdl "shared:odin-sdl2"
 import sdl_image "shared:odin-sdl2/image"
 import sdl_ttf "shared:odin-sdl2/ttf"
+
+import "core:math"
+
 import "shared:io"
+
+
+DIRECTION_LINE_SIZE :: 10;
+PLAYER_MOV_SPEED :: 3;
+PLAYER_ANG_SPEED :: math.PI/20;
+
+
+Vec2 :: struct {
+  x, y : f64
+}
+
+Player :: struct {
+  pos : Vec2
+  dir : Vec2
+}
+
+rotate_vec2 :: proc(v: Vec2, theta: f64) -> Vec2{
+  c, s := math.cos(theta), math.sin(theta);
+  return Vec2{v.x * c - v.y * s, v.x * s + v.y * c};
+}
+
+get_perpendicular_vec2 :: proc(v: Vec2) -> Vec2 {
+  return Vec2{ -v.y, v.x };
+}
 
 main :: proc() {
   sdl.init(sdl.Init_Flags.Everything);
@@ -19,7 +46,14 @@ main :: proc() {
 
   renderer := sdl.create_renderer(window, -1, sdl.Renderer_Flags(0));
 
-  x, y := i32(100), i32(100);
+  // test region
+
+  player := Player {
+    pos = {100,100},
+    dir = {1, 0}
+  };
+
+  // ------------
 
   running := true;
   for running {
@@ -30,11 +64,30 @@ main :: proc() {
       }
 
       if e.type == sdl.Event_Type.Key_Down {
-        if e.key.keysym.sym == sdl.SDLK_a { x -= 10; }
-        if e.key.keysym.sym == sdl.SDLK_d { x += 10; }
-        if e.key.keysym.sym == sdl.SDLK_w { y -= 10; }
-        if e.key.keysym.sym == sdl.SDLK_s { y += 10; }
-        //io.print("(%, %)\n", x, y);
+        if e.key.keysym.sym == sdl.SDLK_a {
+          player.dir = rotate_vec2(player.dir, -PLAYER_ANG_SPEED);
+        }
+        if e.key.keysym.sym == sdl.SDLK_d {
+          player.dir = rotate_vec2(player.dir, PLAYER_ANG_SPEED);
+        }
+        if e.key.keysym.sym == sdl.SDLK_w {
+          player.pos.x += player.dir.x * PLAYER_MOV_SPEED;
+          player.pos.y += player.dir.y * PLAYER_MOV_SPEED;
+        }
+        if e.key.keysym.sym == sdl.SDLK_s {
+          player.pos.x -= player.dir.x * PLAYER_MOV_SPEED;
+          player.pos.y -= player.dir.y * PLAYER_MOV_SPEED;
+        }
+        if e.key.keysym.sym == sdl.SDLK_q {
+          perp := get_perpendicular_vec2(player.dir);
+          player.pos.x -= perp.x * PLAYER_MOV_SPEED;
+          player.pos.y -= perp.y * PLAYER_MOV_SPEED;
+        }
+        if e.key.keysym.sym == sdl.SDLK_e {
+          perp := get_perpendicular_vec2(player.dir);
+          player.pos.x += perp.x * PLAYER_MOV_SPEED;
+          player.pos.y += perp.y * PLAYER_MOV_SPEED;
+        }
       }
     }
 
@@ -42,10 +95,13 @@ main :: proc() {
     sdl.render_clear(renderer);
 
     sdl.set_render_draw_color(renderer, 255, 255, 255, 255);
-    pos_0 := sdl.Point{0, 0};
-    pos_1 := sdl.Point{x, y};
-
-    sdl.render_draw_line(renderer, pos_0.x, pos_0.y, pos_1.x, pos_1.y);
+    sdl.render_draw_line(
+      renderer, 
+      i32(player.pos.x),
+      i32(player.pos.y),
+      i32(player.pos.x + player.dir.x * DIRECTION_LINE_SIZE),
+      i32(player.pos.y + player.dir.y * DIRECTION_LINE_SIZE)
+    );
 
     sdl.render_present(renderer);
   }
