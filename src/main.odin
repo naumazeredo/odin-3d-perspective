@@ -64,6 +64,11 @@ Color3 :: struct {
   r, g, b : u8
 }
 
+Line :: struct {
+  A: Vec2
+  B: Vec2
+}
+
 main :: proc() {
   sdl.init(sdl.Init_Flags.Everything);
   defer sdl.quit();
@@ -84,7 +89,12 @@ main :: proc() {
 
   player := Player {
     pos = {VIEW_W / 2, VIEW_H / 2},
-    dir = {1, 0}
+    dir = {0, -1}
+  };
+
+  line := Line {
+    A = Vec2{ VIEW_W/4, VIEW_H/4 },
+    B = Vec2{ VIEW_W/4*3, VIEW_H/4 }
   };
 
   keystate := sdl.get_keyboard_state(nil);
@@ -181,9 +191,62 @@ main :: proc() {
       i32(player.pos.x), i32(player.pos.y)
     );
 
+    // Draw line
+    sdl.render_draw_line(
+      renderer,
+      i32(line.A.x),
+      i32(line.A.y),
+      i32(line.B.x),
+      i32(line.B.y)
+    );
+
     //
     // Viewport Top-Right: Player top view
     //
+
+    viewport_rect = VIEWS[0][1];
+    sdl.render_set_viewport(renderer, &viewport_rect);
+
+    origin  := Vec2{VIEW_W / 2, VIEW_H / 2};
+    forward := Vec2{0, -1};
+
+    // Draw player
+    sdl.set_render_draw_color(
+      renderer,
+      COLOR_PLAYER_LINE.r, COLOR_PLAYER_LINE.g, COLOR_PLAYER_LINE.b, 255
+    );
+
+    sdl.render_draw_line(
+      renderer,
+      i32(origin.x),
+      i32(origin.y),
+      i32(origin.x + forward.x * DIRECTION_LINE_SIZE),
+      i32(origin.y + forward.y * DIRECTION_LINE_SIZE)
+    );
+
+    sdl.set_render_draw_color(
+      renderer,
+      COLOR_PLAYER.r, COLOR_PLAYER.g, COLOR_PLAYER.b, 255
+    );
+
+    sdl.render_draw_point(
+      renderer,
+      i32(origin.x), i32(origin.y)
+    );
+
+    // Draw wall
+    line2 := Line{ 
+      add_vec2(world_to_camera(&player, line.A), origin),  
+      add_vec2(world_to_camera(&player, line.B), origin) 
+    };
+    
+    sdl.render_draw_line(
+      renderer,
+      i32(line2.A.x),
+      i32(line2.A.y),
+      i32(line2.B.x),
+      i32(line2.B.y)
+    );
 
     //
     // Viewport Down-Left: Player perspective
