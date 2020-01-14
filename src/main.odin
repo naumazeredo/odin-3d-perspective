@@ -64,29 +64,25 @@ main :: proc() {
     old_keystate := keystate;
     keystate = sdl.get_keyboard_state(nil);
 
-    if mem.ptr_offset(keystate, int(sdl.Scancode.A))^ != 0 {
+    if player_action(keystate, sdl.Scancode.A) {
       player.dir = rotate_vec2(player.dir, -PLAYER_ANG_SPEED);
     }
-    if mem.ptr_offset(keystate, int(sdl.Scancode.D))^ != 0 {
+    if player_action(keystate, sdl.Scancode.D) {
       player.dir = rotate_vec2(player.dir, PLAYER_ANG_SPEED);
     }
-    if mem.ptr_offset(keystate, int(sdl.Scancode.W))^ != 0 {
-      player.pos.x += player.dir.x * PLAYER_MOV_SPEED;
-      player.pos.y += player.dir.y * PLAYER_MOV_SPEED;
+    if player_action(keystate, sdl.Scancode.W) {
+      move_player(&player, &player.dir, PLAYER_MOV_SPEED);
     }
-    if mem.ptr_offset(keystate, int(sdl.Scancode.S))^ != 0 {
-      player.pos.x -= player.dir.x * PLAYER_MOV_SPEED;
-      player.pos.y -= player.dir.y * PLAYER_MOV_SPEED;
+    if player_action(keystate, sdl.Scancode.S) {
+      move_player(&player, &player.dir, -1 * PLAYER_MOV_SPEED);
     }
-    if mem.ptr_offset(keystate, int(sdl.Scancode.Q))^ != 0 {
+    if player_action(keystate, sdl.Scancode.Q) {
       perp := get_perpendicular_vec2(player.dir);
-      player.pos.x -= perp.x * PLAYER_MOV_SPEED;
-      player.pos.y -= perp.y * PLAYER_MOV_SPEED;
+      move_player(&player, &perp, -1 * PLAYER_MOV_SPEED);
     }
-    if mem.ptr_offset(keystate, int(sdl.Scancode.E))^ != 0 {
+    if player_action(keystate, sdl.Scancode.E) {
       perp := get_perpendicular_vec2(player.dir);
-      player.pos.x += perp.x * PLAYER_MOV_SPEED;
-      player.pos.y += perp.y * PLAYER_MOV_SPEED;
+      move_player(&player, &perp, PLAYER_MOV_SPEED);
     }
 
     // ----
@@ -122,4 +118,13 @@ main :: proc() {
     frame_time = sdl.get_performance_counter();
     // ----
   }
+}
+
+move_player :: proc(p: ^Player, dir: ^Vec2, amount: f64) {
+  p.pos.x += dir.x * amount;
+  p.pos.y += dir.y * amount;
+}
+
+player_action :: proc(keystate: ^u8, code: sdl.Scancode) -> bool {
+  return mem.ptr_offset(keystate, int(code))^ != 0;
 }
