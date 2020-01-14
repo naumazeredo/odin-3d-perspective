@@ -1,2 +1,2 @@
 all:
-	odin run main.odin
+	odin run src
