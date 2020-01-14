@@ -10,6 +10,7 @@ import "core:mem"
 import "shared:io"
 
 
+
 DIRECTION_LINE_SIZE :: 10;
 PLAYER_MOV_SPEED :: 3;
 PLAYER_ANG_SPEED :: math.PI/20;
