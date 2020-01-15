@@ -11,7 +11,7 @@ import "shared:io"
 
 DIRECTION_LINE_SIZE :: 10;
 PLAYER_MOV_SPEED :: 3;
-PLAYER_ANG_SPEED :: math.PI/20;
+PLAYER_ANG_SPEED :: math.PI/50;
 
 FRAMES_PER_SEC :: 60.0;
 FRAME_DURATION_MS :: 1000.0 / FRAMES_PER_SEC;
@@ -245,11 +245,11 @@ main :: proc() {
     );
 
     // Draw wall
-    line2 := Line{ 
-      add_vec2(world_to_camera(&player, wall.A), origin),  
+    line2 := Line{
+      add_vec2(world_to_camera(&player, wall.A), origin),
       add_vec2(world_to_camera(&player, wall.B), origin) 
     };
-    
+
     sdl.render_draw_line(
       renderer,
       i32(line2.A.x),
@@ -265,45 +265,31 @@ main :: proc() {
     viewport_rect = VIEWS[1][0];
     sdl.render_set_viewport(renderer, &viewport_rect);
 
-    p00 := world_to_proj(&player, Vec3 { wall.A.x, wall.A.y, wall.h/2 });
-    p01 := world_to_proj(&player, Vec3 { wall.B.x, wall.B.y, wall.h/2 });
-    p10 := world_to_proj(&player, Vec3 { wall.A.x, wall.A.y, -wall.h/2 });
-    p11 := world_to_proj(&player, Vec3 { wall.B.x, wall.B.y, -wall.h/2 });
+    ps := [4]Vec3 {
+      Vec3 { wall.A.x, wall.A.y, wall.h/2 },
+      Vec3 { wall.B.x, wall.B.y, wall.h/2 },
+      Vec3 { wall.B.x, wall.B.y, -wall.h/2 },
+      Vec3 { wall.A.x, wall.A.y, -wall.h/2 }
+    };
 
-    sdl.render_draw_point(
-      renderer,
-      i32(p00.x*VIEW_W), i32(p00.y*VIEW_H)
-    );
+    for i in 0..1 {
+      for j in 0..1 {
+        if p0, p1, ok := world_to_proj(&player, ps[2*i+j], ps[(2*i+j+1)%4]); ok {
+          sdl.set_render_draw_color(renderer,
+            VIEW_COLORS[i][j].r,
+            VIEW_COLORS[i][j].g,
+            VIEW_COLORS[i][j].b,
+            255
+          );
 
-    // Horizontal
-    sdl.set_render_draw_color(renderer, VIEW_COLORS[0][0].r, VIEW_COLORS[0][0].g, VIEW_COLORS[0][0].b, 255);
-    sdl.render_draw_line(
-      renderer,
-      i32(p00.x*VIEW_W), i32(p00.y*VIEW_H),
-      i32(p01.x*VIEW_W), i32(p01.y*VIEW_H)
-    );
-    sdl.set_render_draw_color(renderer, VIEW_COLORS[0][1].r, VIEW_COLORS[0][1].g, VIEW_COLORS[0][1].b, 255);
-    sdl.render_draw_line(
-      renderer,
-      i32(p10.x*VIEW_W), i32(p10.y*VIEW_H),
-      i32(p11.x*VIEW_W), i32(p11.y*VIEW_H)
-    );
-
-    // Vertical
-    sdl.set_render_draw_color(renderer, VIEW_COLORS[1][0].r, VIEW_COLORS[1][0].g, VIEW_COLORS[1][0].b, 255);
-    sdl.render_draw_line(
-      renderer,
-      i32(p00.x*VIEW_W), i32(p00.y*VIEW_H),
-      i32(p10.x*VIEW_W), i32(p10.y*VIEW_H)
-    );
-    sdl.set_render_draw_color(renderer, VIEW_COLORS[1][1].r, VIEW_COLORS[1][1].g, VIEW_COLORS[1][1].b, 255);
-    sdl.render_draw_line(
-      renderer,
-      i32(p01.x*VIEW_W), i32(p01.y*VIEW_H),
-      i32(p11.x*VIEW_W), i32(p11.y*VIEW_H)
-    );
-
-    
+          sdl.render_draw_line(
+            renderer,
+            i32(p0.x*VIEW_W), i32(p0.y*VIEW_H),
+            i32(p1.x*VIEW_W), i32(p1.y*VIEW_H)
+          );
+        }
+      }
+    }
 
     //
     // Viewport Down-Right: Doom
