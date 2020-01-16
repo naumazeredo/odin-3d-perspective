@@ -1,3 +1,5 @@
+// @Todo: create to_vec2_render = Vec4 v -> Vec2{v.x, v.z}
+
 package main
 
 import "core:math"
@@ -174,6 +176,8 @@ get_world_to_camera_matrix_wolf :: proc(dir: Vec2, pos: Vec3) -> Mat4 {
   };
 }
 
+/*
+// @Todo: remove these 2D functions
 world_to_camera2 :: proc(player: ^Player, point: Vec2) -> Vec2 {
   p := sub_vec(point, to_vec2(player.pos));
 
@@ -181,6 +185,7 @@ world_to_camera2 :: proc(player: ^Player, point: Vec2) -> Vec2 {
   theta := -math.atan2(player.dir.x, -player.dir.y);
   return rotate_vec2(p, theta);
 }
+*/
 
 world_to_camera3 :: proc(player: ^Player, point: Vec3) -> Vec3 {
   p := sub_vec(point, player.pos);
@@ -191,19 +196,21 @@ world_to_camera3 :: proc(player: ^Player, point: Vec3) -> Vec3 {
   return Vec3{v.x, p.y, v.y};
 }
 
-world_to_camera :: proc{world_to_camera2, world_to_camera3};
+//world_to_camera :: proc{world_to_camera2, world_to_camera3};
+world_to_camera :: proc{world_to_camera3};
 
+/*
+// @Todo: remove these 2D functions
 world_to_camera2_mat :: proc(player: ^Player, point: Vec2) -> Vec2 {
-  p := Vec4{point.x, 0, point.y, 1};
   w2c_mat := get_world_to_camera_matrix_wolf(player.dir, player.pos);
-
-  v := mul(w2c_mat, p);
+  v := mul(w2c_mat, Vec4{point.x, 0, point.y, 1});
   return Vec2{v.x, v.z};
 }
+*/
 
 world_to_camera3_mat :: proc(player: ^Player, point: Vec3) -> Vec3 {
   w2c_mat := get_world_to_camera_matrix_wolf(player.dir, player.pos);
-  return to_vec3(mul(w2c_mat, to_vec4(point)));
+  return to_vec3(mul(w2c_mat, to_vec4(point, 1)));
 }
 
 camera_to_proj_point :: proc(point: Vec3) -> (Vec2, bool) {
@@ -253,3 +260,10 @@ world_to_proj_line :: proc(player: ^Player, p1, p2 : Vec3) -> (Vec2, Vec2, bool)
 world_to_proj :: proc{world_to_proj_point, world_to_proj_line};
 
 // @Todo: camera_to_proj, world_to_proj
+
+world_to_proj_line_mat:: proc(player: ^Player, p1, p2: Vec3) -> (Vec2, Vec2, bool) {
+  return camera_to_proj(
+    world_to_camera3_mat(player, p1),
+    world_to_camera3_mat(player, p2)
+  );
+}

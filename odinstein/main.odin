@@ -229,15 +229,15 @@ main :: proc() {
     );
 
 
-    ff := add_vec(Vec2{player.pos.x, player.pos.z}, mul(player.dir, cast(f64)DIRECTION_LINE_SIZE));
-    ff = world_to_camera2_mat(&player, ff);
+    f := add_vec(Vec2{player.pos.x, player.pos.z}, mul(player.dir, cast(f64)DIRECTION_LINE_SIZE));
+    ff := world_to_camera3_mat(&player, Vec3{f.x, 0, f.y});
 
     sdl.render_draw_line(
       renderer,
       i32(origin.x),
       i32(origin.y),
       i32(origin.x + ff.x),
-      i32(origin.y + ff.y)
+      i32(origin.y + ff.z)
     );
 
     sdl.set_render_draw_color(
@@ -252,17 +252,15 @@ main :: proc() {
 
 
     // Draw wall
-    line2 := Line{
-      world_to_camera2_mat(&player, wall.A),
-      world_to_camera2_mat(&player, wall.B)
-    };
+    p1 := world_to_camera3_mat(&player, Vec3 { wall.A.x, 0, wall.A.y });
+    p2 := world_to_camera3_mat(&player, Vec3 { wall.B.x, 0, wall.B.y });
 
     sdl.render_draw_line(
       renderer,
-      i32(origin.x + line2.A.x),
-      i32(origin.y + line2.A.y),
-      i32(origin.x + line2.B.x),
-      i32(origin.y + line2.B.y)
+      i32(origin.x + p1.x),
+      i32(origin.y + p1.z),
+      i32(origin.x + p2.x),
+      i32(origin.y + p2.z)
     );
 
     //
@@ -281,7 +279,8 @@ main :: proc() {
 
     for i in 0..1 {
       for j in 0..1 {
-        if p0, p1, ok := world_to_proj(&player, ps[2*i+j], ps[(2*i+j+1)%4]); ok {
+        //if p0, p1, ok := world_to_proj(&player, ps[2*i+j], ps[(2*i+j+1)%4]); ok {
+        if p0, p1, ok := world_to_proj_line_mat(&player, ps[2*i+j], ps[(2*i+j+1)%4]); ok {
           sdl.set_render_draw_color(renderer,
             VIEW_COLORS[i][j].r,
             VIEW_COLORS[i][j].g,

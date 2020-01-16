@@ -1,10 +1,11 @@
 # @Todo: dependencies (currently a folder dependency)
+SRC=odinstein
 
 all:
-	odin run src
+	odin run $(SRC)
 
 build:
-	odin build src
+	odin build $(SRC)
 
 run:
-	.\src
+	.\$(SRC)
