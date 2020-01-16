@@ -98,7 +98,7 @@ main :: proc() {
   // test region
 
   player := Player {
-    pos = { VIEW_W / 2, VIEW_H / 2, 0 },
+    pos = { VIEW_W / 2, 0, VIEW_H / 2 },
     dir = {0, -1}
   };
 
@@ -110,6 +110,8 @@ main :: proc() {
   keystate := sdl.get_keyboard_state(nil);
 
   frame_time := sdl.get_performance_counter();
+
+  io.print("view size: (%, %)\n", VIEW_W, VIEW_H);
 
   // ------------
 
@@ -186,9 +188,9 @@ main :: proc() {
     sdl.render_draw_line(
       renderer,
       i32(player.pos.x),
-      i32(player.pos.y),
+      i32(player.pos.z),
       i32(player.pos.x + player.dir.x * DIRECTION_LINE_SIZE),
-      i32(player.pos.y + player.dir.y * DIRECTION_LINE_SIZE)
+      i32(player.pos.z + player.dir.y * DIRECTION_LINE_SIZE)
     );
 
     sdl.set_render_draw_color(
@@ -198,7 +200,7 @@ main :: proc() {
 
     sdl.render_draw_point(
       renderer,
-      i32(player.pos.x), i32(player.pos.y)
+      i32(player.pos.x), i32(player.pos.z)
     );
 
     // Draw line
@@ -226,12 +228,16 @@ main :: proc() {
       COLOR_PLAYER_LINE.r, COLOR_PLAYER_LINE.g, COLOR_PLAYER_LINE.b, 255
     );
 
+
+    ff := add_vec(Vec2{player.pos.x, player.pos.z}, mul(player.dir, cast(f64)DIRECTION_LINE_SIZE));
+    ff = world_to_camera2_mat(&player, ff);
+
     sdl.render_draw_line(
       renderer,
       i32(origin.x),
       i32(origin.y),
-      i32(origin.x + forward.x * DIRECTION_LINE_SIZE),
-      i32(origin.y + forward.y * DIRECTION_LINE_SIZE)
+      i32(origin.x + ff.x),
+      i32(origin.y + ff.y)
     );
 
     sdl.set_render_draw_color(
@@ -244,18 +250,19 @@ main :: proc() {
       i32(origin.x), i32(origin.y)
     );
 
+
     // Draw wall
     line2 := Line{
-      add_vec2(world_to_camera(&player, wall.A), origin),
-      add_vec2(world_to_camera(&player, wall.B), origin) 
+      world_to_camera2_mat(&player, wall.A),
+      world_to_camera2_mat(&player, wall.B)
     };
 
     sdl.render_draw_line(
       renderer,
-      i32(line2.A.x),
-      i32(line2.A.y),
-      i32(line2.B.x),
-      i32(line2.B.y)
+      i32(origin.x + line2.A.x),
+      i32(origin.y + line2.A.y),
+      i32(origin.x + line2.B.x),
+      i32(origin.y + line2.B.y)
     );
 
     //
@@ -266,10 +273,10 @@ main :: proc() {
     sdl.render_set_viewport(renderer, &viewport_rect);
 
     ps := [4]Vec3 {
-      Vec3 { wall.A.x, wall.A.y, wall.h/2 },
-      Vec3 { wall.B.x, wall.B.y, wall.h/2 },
-      Vec3 { wall.B.x, wall.B.y, -wall.h/2 },
-      Vec3 { wall.A.x, wall.A.y, -wall.h/2 }
+      Vec3 { wall.A.x,  wall.h/2, wall.A.y },
+      Vec3 { wall.B.x,  wall.h/2, wall.B.y },
+      Vec3 { wall.B.x, -wall.h/2, wall.B.y },
+      Vec3 { wall.A.x, -wall.h/2, wall.A.y }
     };
 
     for i in 0..1 {
@@ -320,7 +327,7 @@ main :: proc() {
 
 move_player :: proc(p: ^Player, dir: ^Vec2, amount: f64) {
   p.pos.x += dir.x * amount;
-  p.pos.y += dir.y * amount;
+  p.pos.z += dir.y * amount;
 }
 
 player_action :: proc(keystate: ^u8, code: sdl.Scancode) -> bool {
