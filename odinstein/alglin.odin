@@ -185,7 +185,6 @@ world_to_camera2 :: proc(player: ^Player, point: Vec2) -> Vec2 {
   theta := -math.atan2(player.dir.x, -player.dir.y);
   return rotate_vec2(p, theta);
 }
-*/
 
 world_to_camera3 :: proc(player: ^Player, point: Vec3) -> Vec3 {
   p := sub_vec(point, player.pos);
@@ -198,6 +197,7 @@ world_to_camera3 :: proc(player: ^Player, point: Vec3) -> Vec3 {
 
 //world_to_camera :: proc{world_to_camera2, world_to_camera3};
 world_to_camera :: proc{world_to_camera3};
+*/
 
 /*
 // @Todo: remove these 2D functions
@@ -246,6 +246,7 @@ camera_to_proj_line :: proc(p1: Vec3, p2: Vec3) -> (Vec2, Vec2, bool) {
 
 camera_to_proj :: proc{camera_to_proj_point, camera_to_proj_line};
 
+/*
 world_to_proj_point :: proc(player: ^Player, point: Vec3) -> (Vec2, bool) {
   return camera_to_proj(world_to_camera(player, point));
 }
@@ -258,6 +259,7 @@ world_to_proj_line :: proc(player: ^Player, p1, p2 : Vec3) -> (Vec2, Vec2, bool)
 }
 
 world_to_proj :: proc{world_to_proj_point, world_to_proj_line};
+*/
 
 // @Todo: camera_to_proj, world_to_proj
 
